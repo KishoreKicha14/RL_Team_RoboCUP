@@ -1,16 +1,17 @@
 <mujoco>
     <worldbody>
         <!-- Stadium -->
-        <geom type="plane" size="52 37 0.1" pos="0 0 0" rgba="0 1 0 1" />
-
+        <geom name="stadium" type="plane" size="52 37 0.1" pos="0 0 0" rgba="0 1 0 1" />
+            
         <!-- Boundaries -->
         <body>
-            <geom type="box" size="48 0.1 1" pos="0 33 0" rgba="0 0 0 1" />
-            <geom type="box" size="48 0.1 1" pos="0 -33 0" rgba="0 0 0 1" />
-            <geom type="box" size="33 0.1 1" pos="48 0 0" rgba="0 0 0 1" euler="0 0 90" />
-            <geom type="box" size="33 0.1 1" pos="-48 0 0" rgba="0 0 0 1" euler="0 0 90" />
+            <geom name="boundary_1" type="box" size="48 0.1 1" pos="0 33 0" rgba="0 0 0 1" />
+            <geom name="boundary_2" type="box" size="48 0.1 1" pos="0 -33 0" rgba="0 0 0 1" />
+            <geom name="boundary_3" type="box" size="33 0.1 1" pos="48 0 0" rgba="0 0 0 1" euler="0 0 90" />
+            <geom name="boundary_4" type="box" size="33 0.1 1" pos="-48 0 0" rgba="0 0 0 1" euler="0 0 90" />
         </body>
 
+        
         <!-- Goal posts -->
         <!-- Goal post 1 -->
         <body>
@@ -24,6 +25,52 @@
             <geom type="box" size="5 0.2 1.6" pos="-46.8 0 0" rgba="1 0 0 1" euler="0 0 90" />
             <geom type="box" size="0.9 0.2 1.6" pos="-45.9 5 0" rgba="1 0 0 1" />
             <geom type="box" size="0.9 0.2 1.6" pos="-45.9 -5 0" rgba="1 0 0 1" />
+        </body>
+
+        <!-- Field Markings -->
+        <!-- Field Lines -->
+        <body>
+            <!-- Touch lines -->
+            <geom type="box" size="0.001 45 0.01" pos="0 30 0" rgba="255 255 255 1" euler="90 0 90"/>
+            <geom type="box" size="0.001 45 0.01" pos="0 -30 0" rgba="255 255 255 1" euler="90 0 90"/>
+
+            <!-- Goal lines -->
+            <geom type="box" size="0.001 30 0.01" pos="-45 0 0" rgba="255 255 255 1" euler="0 90 0"/>
+            <geom type="box" size="0.001 30 0.01" pos="45 0 0" rgba="255 255 255 1" euler="0 90 0"/>
+        </body>
+
+        <!-- Halfway Lines -->
+        <body>
+            <!-- Halfway Line -->
+            <geom type="box" size="0.001 30 0.01" pos="0 0 0" rgba="255 255 255 1" euler="0 90 0"/>
+
+            <!-- Goal-to-Goal Line -->
+            <geom type="box" size="0.001 45 0.01" pos="0 0 0" rgba="255 255 255 1" euler="90 0 90"/>
+        </body>
+
+        <!-- Defence area -->
+        <body>
+            <geom type="box" size="0.001 5 0.01" pos="40 10 0" rgba="255 255 255 1" euler="90 0 90"/>
+            <geom type="box" size="0.001 5 0.01" pos="40 -10 0" rgba="255 255 255 1" euler="90 0 90"/>
+            <geom type="box" size="0.001 10 0.01" pos="35 0 0" rgba="255 255 255 1" euler="0 90 0"/>
+        </body>
+
+        <body>
+            <geom type="box" size="0.001 5 0.01" pos="-40 10 0" rgba="255 255 255 1" euler="90 0 90"/>
+            <geom type="box" size="0.001 5 0.01" pos="-40 -10 0" rgba="255 255 255 1" euler="90 0 90"/>
+            <geom type="box" size="0.001 10 0.01" pos="-35 0 0" rgba="255 255 255 1" euler="0 90 0"/>
+        </body>
+
+        <!-- Ball -->
+        <body>
+            <geom type="sphere" size="0.215" pos="0 0 1" rgba="1 0.647 0 1" />
+            <joint type="free" />
+        </body>
+
+        <!-- Sphero 1 -->
+        <body>
+            <geom type="sphere" size="0.365" pos="5 0 1" rgba="0 0 1 1" />
+            <joint type="free" />
         </body>
 
     </worldbody>

@@ -70,7 +70,7 @@
         <body pos="5 0 0.365">
             <geom type="sphere" size="0.365"  rgba="0 0 1 1" />
             <joint type="slide" axis="1 0 0" />
-			<joint type="hinge" axis="0 0 1" />
+			<joint type="hinge" axis="0 0 -1" />
         </body>
 
     </worldbody>

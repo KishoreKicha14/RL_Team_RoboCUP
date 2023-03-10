@@ -3,6 +3,7 @@ from mujoco.glfw import glfw
 import numpy as np
 import os
 
+# Configurations
 xml_path = 'mujoco/models/field.xml' #xml file (assumes this is in the same folder as this file)
 simend = 5 #simulation time
 print_camera_config = 0 #set to 1 to print camera config
@@ -15,14 +16,7 @@ button_right = False
 lastx = 0
 lasty = 0
 
-def init_controller(model,data):
-	#initialize the controller here. This function is called once, in the beginning
-	pass
-
-def controller(model, data):
-	#put the controller here. This function is called inside the simulation.
-	pass
-
+# Callback functions
 def keyboard(window, key, scancode, act, mods):
 	if act == glfw.PRESS and key == glfw.KEY_BACKSPACE:
 		mj.mj_resetData(model, data)
@@ -93,14 +87,14 @@ def scroll(window, xoffset, yoffset):
 	mj.mjv_moveCamera(model, action, 0.0, -0.05 *
 					  yoffset, scene, cam)
 
-#get the full path
+# get the full path
 dirname = os.path.dirname(__file__)
 abspath = os.path.join(dirname + "/" + xml_path)
 xml_path = abspath
 
 # MuJoCo data structures
 model = mj.MjModel.from_xml_path(xml_path)  # MuJoCo model
-data = mj.MjData(model)                # MuJoCo data
+data = mj.MjData(model)                		# MuJoCo data
 cam = mj.MjvCamera()                        # Abstract camera
 opt = mj.MjvOption()                        # visualization options
 
@@ -122,11 +116,13 @@ glfw.set_cursor_pos_callback(window, mouse_move)
 glfw.set_mouse_button_callback(window, mouse_button)
 glfw.set_scroll_callback(window, scroll)
 
-# Example on how to set camera configuration
-# cam.azimuth = 90
-# cam.elevation = -45
-# cam.distance = 2
-# cam.lookat = np.array([0.0, 0.0, 0])
+def init_controller(model,data):
+	#initialize the controller here. This function is called once, in the beginning
+	pass
+
+def controller(model, data):
+	#put the controller here. This function is called inside the simulation.
+	pass
 
 #initialize the controller
 init_controller(model,data)
@@ -140,8 +136,9 @@ while not glfw.window_should_close(window):
 	while (data.time - time_prev < 1.0/60.0):
 		mj.mj_step(model, data)
 
-	if (data.time>=simend):
-		break;
+	# End simulation based on time
+	# if (data.time>=simend):
+	# 	break
 
 	# get framebuffer viewport
 	viewport_width, viewport_height = glfw.get_framebuffer_size(

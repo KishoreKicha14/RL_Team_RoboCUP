@@ -11,7 +11,6 @@
             <geom name="boundary_4" type="box" size="33 0.1 1" pos="-48 0 0" rgba="0 0 0 1" euler="0 0 90" />
         </body>
 
-        
         <!-- Goal posts -->
         <!-- Goal post 1 -->
         <body>
@@ -62,15 +61,16 @@
         </body>
 
         <!-- Ball -->
-        <body>
-            <geom type="sphere" size="0.215" pos="0 0 1" rgba="1 0.647 0 1" />
+        <body pos="0 0 0.215">
+            <geom type="sphere" size="0.215"  rgba="1 0.647 0 1" />
             <joint type="free" />
         </body>
 
         <!-- Sphero 1 -->
-        <body>
-            <geom type="sphere" size="0.365" pos="5 0 1" rgba="0 0 1 1" />
-            <joint type="free" />
+        <body pos="5 0 0.365">
+            <geom type="sphere" size="0.365"  rgba="0 0 1 1" />
+            <joint type="slide" axis="1 0 0" />
+			<joint type="hinge" axis="0 0 1" />
         </body>
 
     </worldbody>

@@ -3,8 +3,11 @@ from mujoco.glfw import glfw
 import numpy as np
 import os
 
+from Sphero import Sphero
+from Environment import Environment
+
 # Configurations
-xml_path = 'mujoco/models/field.xml' #xml file (assumes this is in the same folder as this file)
+xml_path = 'mujoco/field.xml' #xml file (assumes this is in the same folder as this file)
 simend = 5 #simulation time
 print_camera_config = 0 #set to 1 to print camera config
 						#this is useful for initializing view of the model)
@@ -116,16 +119,18 @@ glfw.set_cursor_pos_callback(window, mouse_move)
 glfw.set_mouse_button_callback(window, mouse_button)
 glfw.set_scroll_callback(window, scroll)
 
-def init_controller(model,data):
-	#initialize the controller here. This function is called once, in the beginning
+def init_controller(model, data):
 	pass
 
 def controller(model, data):
-	#put the controller here. This function is called inside the simulation.
-	pass
+	environment = Environment()
+	agent_A1 = Sphero(data, model, '1')
+
+	action = environment.action_space.sample()
+	angle, speed = action[0], action[1]
 
 #initialize the controller
-init_controller(model,data)
+init_controller(model, data)
 
 #set the controller
 mj.set_mjcb_control(controller)

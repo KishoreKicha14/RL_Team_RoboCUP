@@ -129,6 +129,10 @@ def controller(model, data):
 	action = environment.action_space.sample()
 	angle, speed = action[0], action[1]
 
+	velocity = np.array([50, 40, 0.0])  # move diagonally in the xy-plane
+	velocity /= np.linalg.norm(velocity)  # normalize the velocity vector
+	data.qvel[0:3] = 4 * velocity
+
 #initialize the controller
 init_controller(model, data)
 

@@ -17,24 +17,9 @@ class Simulation:
 		self.lasty = 0
 
 		self.model = mj.MjModel.from_xml_path(self.env_path) 
-		self.data = mj.MjData(self.model)                		
+		self.data = mj.MjData(self.model)      
 		self.cam = mj.MjvCamera()                       
-		self.opt = mj.MjvOption()
-
-		glfw.init()
-		self.window = glfw.create_window(1200, 900, 'Sphero Soccer', None, None)
-		glfw.make_context_current(self.window)
-		glfw.swap_interval(1)
-
-		mj.mjv_defaultCamera(self.cam)
-		mj.mjv_defaultOption(self.opt)
-		self.scene = mj.MjvScene(self.model, maxgeom=10000)
-		self.context = mj.MjrContext(self.model, mj.mjtFontScale.mjFONTSCALE_150.value)                
-
-		glfw.set_key_callback(self.window, self.keyboard)
-		glfw.set_cursor_pos_callback(self.window, self.mouse_move)
-		glfw.set_mouse_button_callback(self.window, self.mouse_button)
-		glfw.set_scroll_callback(self.window, self.mouse_scroll)	
+		self.opt = mj.MjvOption()          		
 
 	def set_env_path(self, envFile):
 		dirname = os.path.dirname(__file__)
@@ -104,8 +89,25 @@ class Simulation:
 		pass
 
 	def start(self):
-		self.init_controller(self.model, self.data)
-		mj.set_mjcb_control(self.controller)
+		mj.mj_resetData(self.model, self.data)
+		mj.mj_forward(self.model, self.data)
+
+		glfw.init()
+		self.window = glfw.create_window(1200, 900, 'Sphero Soccer', None, None)
+		glfw.make_context_current(self.window)
+		glfw.swap_interval(1)
+
+		mj.mjv_defaultCamera(self.cam)
+		mj.mjv_defaultOption(self.opt)
+		self.scene = mj.MjvScene(self.model, maxgeom=10000)
+		self.context = mj.MjrContext(self.model, mj.mjtFontScale.mjFONTSCALE_150.value)                
+
+		glfw.set_key_callback(self.window, self.keyboard)
+		glfw.set_cursor_pos_callback(self.window, self.mouse_move)
+		glfw.set_mouse_button_callback(self.window, self.mouse_button)
+		glfw.set_scroll_callback(self.window, self.mouse_scroll)
+
+		self.init_controller(self.model, self.data)	
 
 		while not glfw.window_should_close(self.window):
 			time_prev = self.data.time
@@ -131,4 +133,3 @@ class Simulation:
 			glfw.poll_events()
 
 		glfw.terminate()
-

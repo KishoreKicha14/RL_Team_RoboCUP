@@ -1,14 +1,15 @@
 <mujoco>
-<asset>
+
+	<asset>
 		<material name="floor" texture="checks1" texrepeat="2 2" texuniform="true"/>
 		<texture name="checks1" builtin="checker" type='2d' width='256' height='256' rgb1="1 1 1" rgb2="0 0 0" />
 		<material name="object" texture="checks2" texrepeat="2 2" texuniform="true"/>
 		<texture name="checks2" builtin="checker" type='2d' width='256' height='256' rgb1="1 0 0" rgb2="0 1 0" />
 	</asset>
-    <default>
-    <geom condim="3" friction="1 0.5 0.5"/>
-  </default>
 
+	<default>
+		<geom condim="3" friction="1 0.5 0.5"/>
+	</default>
 
     <worldbody>
         <!--Stadium-->
@@ -80,24 +81,30 @@
             <geom name="Defence area6" type="box" size="0.001 10 0.01" pos="-35 0 0" rgba="255 255 255 1" euler="0 90 0"/>
         </body>
 
-		<!-- Team A -->
-        <!-- Player 1 -->
-        <body name="agent" pos="0 0 0.365">
-            <geom name="sphero1" type="sphere" size="0.215"  rgba="1 0.647 0 1" mass="1" friction="1" />
+		<!-- Ball -->
+        <body name="ball" pos="0 0 0.365">
+            <geom name="ball_g" type="sphere" size="0.215"  rgba="1 0.647 0 1" mass="1" friction="1" />
             <joint type="free"/>
         </body>
 
-        <!-- Ball -->
-        <body name="ball" pos="5 0 0.365" >
-            <geom name="ball_g" type="sphere" size="0.365"  rgba="0 0 1 1"  mass="1" material="object" friction="1" />
-            <!-- <joint name="kick_1" type="slide" axis="1 0 0" />
-			<joint name="roll_1" type="hinge" axis="0 0 -1" /> -->
+		<!-- Team A -->
+        <!-- Player 1 -->
+        <body name="A_1" pos="5 5 0.365" >
+            <geom name="a_1" type="sphere" size="0.365"  rgba="0 0 1 1"  mass="1" friction="1" />
             <joint type="free"/>
-            <!--
-            <joint name="roll" type="slide" axis="1 1 0"/>
-			<joint type="slide" axis="0 0 1"/>
-			<joint type="hinge" axis="0 -1 0"/>
-            <joint name="rotate" type="hinge" axis="0 0 1"/>-->
+        </body>
+
+		<!-- Player 2 -->
+        <body name="A_2" pos="5 -5 0.365" >
+            <geom name="a_2" type="sphere" size="0.365"  rgba="0 0 1 1"  mass="1" friction="1" />
+            <joint type="free"/>
+        </body>
+
+		<!-- Team B -->
+        <!-- Player 1 -->
+        <body name="B_1" pos="-5 0 0.365" >
+            <geom name="b_1" type="sphere" size="0.365"  rgba="1 0 0 1"  mass="1" friction="1" />
+            <joint type="free"/>
         </body>
 
     </worldbody>

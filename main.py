@@ -12,53 +12,38 @@ import torch.optim as optim
 import random
 import copy
 
-#from Sphero import Sphero
-#from Environment import Environment
-
-
-
 class Soccer(gym.Env):
+	def __init__(self):
+		self.action_space = spaces.Box(
+			low=np.array([-np.pi, 0], dtype=np.float32),
+			high=np.array([np.pi, 1], dtype=np.float32),
+			dtype=np.float32
+		)
 
+		# x-coord, y-coord, x-vel, y-vel, angle wrt x-axis
+		information_low_ball = np.array([-45, -30, -10, -10, -np.pi], dtype=np.float32) # TODO: should increase to boundaries of pitch
+		information_high_ball = np.array([45, 30, 10, 10, np.pi], dtype=np.float32)
 
-    def __init__(self):
-        # Define the action space
-        # The first action is the angle of rotation (-π to π)
-        # The second action is the direction of movement (0: stop, 1: forward)
-        self.action_space = spaces.Box(
-                                        low=np.array([-np.pi, 0], dtype=np.float32),
-                                        high=np.array([np.pi, 1], dtype=np.float32),
-                                        dtype=np.float32
-                                      )
+		# x-coord, y-coord, x-vel, y-vel, angle wrt x-axis
+		information_low_agent = np.array([-45, -30, -10, -10, -np.pi], dtype=np.float32)
+		information_high_agent = np.array([45, 30, 10, 10, np.pi], dtype=np.float32)
 
-        # Define the observation space
-        # The observation space has 10 dimensions:
-        # 1. Ball x-coordinate
-        # 2. Ball y-coordinate
-        # 3. Ball x-velocity
-        # 4. Ball y-velocity
-        # 5. Ball angle with respect to x-axis (-pi to pi)
-        # 6. Agent x-coordinate
-        # 7. Agent y-coordinate
-        # 8. Agent x-velocity
-        # 9. Agent y-velocity
-        # 10. Agent angle with respect to x-axis (-pi to pi)
-        low = np.array([-45, -30, -10, -10, -np.pi, -45, -30, -10, -10], dtype=np.float32)
-        high = np.array([45, 30, 10, 10, np.pi, 45, 30, 10, 10], dtype=np.float32)
-        self.observation_space = spaces.Box(low=low, high=high, dtype=np.float32)
+		number_of_agents = 3
 
+		low = np.concatenate(information_low_ball, np.tile(information_low_agent, number_of_agents))
+		high = np.concatenate(information_high_ball, np.tile(information_high_agent, number_of_agents))
+		self.observation_space = spaces.Box(low=low, high=high, dtype=np.float32)
 
 env = Soccer()
 
-
-
 def move_and_rotate(current_coords, angle, forward):
-    forward+=angle
-    angle= angle
-    x, y, z = current_coords
-    x_prime = math.cos(angle)
-    y_prime = math.sin(angle)
-    z_prime = 0
-    return  forward, [x_prime, y_prime, z_prime]
+	forward+=angle
+	angle= angle
+	x, y, z = current_coords
+	x_prime = math.cos(angle)
+	y_prime = math.sin(angle)
+	z_prime = 0
+	return  forward, [x_prime, y_prime, z_prime]
 
 def Is_ball_touched():
 	for i in range(len(data.contact.geom1)):
@@ -106,39 +91,39 @@ def distance_bw_goal2_n_ball():
 		distance = np.linalg.norm(np.cross(p - a, p - b)) / np.linalg.norm(b - a)
 		return distance
 def distance_bw_ball_n_sphero():
-    return np.linalg.norm(data.xpos[8] - data.xpos[9])
+	return np.linalg.norm(data.xpos[8] - data.xpos[9])
 
 def compute_reward():
-    # Compute the distance to the ball and the goal
-    distance_to_ball = distance_bw_ball_n_sphero()
-    distance_to_goal = distance_bw_goal1_n_ball()
+	# Compute the distance to the ball and the goal
+	distance_to_ball = distance_bw_ball_n_sphero()
+	distance_to_goal = distance_bw_goal1_n_ball()
 
-    # Compute the time penalty
-    time_penalty = -0.0001
+	# Compute the time penalty
+	time_penalty = -0.0001
 
-    # Compute the out-of-bounds penalty
-    out_of_bound_penalty = Is_boundaries_touched()
-    # Compute the touch ball reward
-    touch_ball_reward = Is_ball_touched()
-    # Compute the goal achieved reward
-    goal_achieved_reward = Is_goal()
+	# Compute the out-of-bounds penalty
+	out_of_bound_penalty = Is_boundaries_touched()
+	# Compute the touch ball reward
+	touch_ball_reward = Is_ball_touched()
+	# Compute the goal achieved reward
+	goal_achieved_reward = Is_goal()
 
-    # Compute the distance to the ball and goal coefficients
-    distance_to_goal_coeff = - 0.01
-    distance_to_ball_coeff = - 0.01
-    Sphero_goal_penalty=Is_goal_sphero()
+	# Compute the distance to the ball and goal coefficients
+	distance_to_goal_coeff = - 0.01
+	distance_to_ball_coeff = - 0.01
+	Sphero_goal_penalty=Is_goal_sphero()
 
-    # Compute the overall reward
-    reward = (
-            touch_ball_reward +
-            goal_achieved_reward +
-            distance_to_ball_coeff * distance_to_ball +
-            distance_to_goal_coeff * distance_to_goal +
-            #time_penalty +
-	        Sphero_goal_penalty+
-            #rotation_penalty +
-            out_of_bound_penalty)
-    return reward, True if goal_achieved_reward!=0.0 else False, True if out_of_bound_penalty!=0 or Sphero_goal_penalty!=0 else False
+	# Compute the overall reward
+	reward = (
+			touch_ball_reward +
+			goal_achieved_reward +
+			distance_to_ball_coeff * distance_to_ball +
+			distance_to_goal_coeff * distance_to_goal +
+			#time_penalty +
+			Sphero_goal_penalty+
+			#rotation_penalty +
+			out_of_bound_penalty)
+	return reward, True if goal_achieved_reward!=0.0 else False, True if out_of_bound_penalty!=0 or Sphero_goal_penalty!=0 else False
 
 # Hyperparameters
 BUFFER_SIZE = 100000
@@ -156,124 +141,124 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # Actor network
 class Actor(nn.Module):
-    def __init__(self, state_size, action_size, hidden_size):
-        super(Actor, self).__init__()
-        self.fc1 = nn.Linear(state_size, hidden_size)
-        self.fc2 = nn.Linear(hidden_size, hidden_size)
-        self.fc3 = nn.Linear(hidden_size, action_size)
-        self.relu = nn.ReLU()
-        self.tanh = nn.Tanh()
-        
-    def forward(self, state):
-        x = self.fc1(state)
-        x = self.relu(x)
-        x = self.fc2(x)
-        x = self.relu(x)
-        x = self.fc3(x)
-        x = self.tanh(x)
-        return x
+	def __init__(self, state_size, action_size, hidden_size):
+		super(Actor, self).__init__()
+		self.fc1 = nn.Linear(state_size, hidden_size)
+		self.fc2 = nn.Linear(hidden_size, hidden_size)
+		self.fc3 = nn.Linear(hidden_size, action_size)
+		self.relu = nn.ReLU()
+		self.tanh = nn.Tanh()
+		
+	def forward(self, state):
+		x = self.fc1(state)
+		x = self.relu(x)
+		x = self.fc2(x)
+		x = self.relu(x)
+		x = self.fc3(x)
+		x = self.tanh(x)
+		return x
 
 # Critic network
 class Critic(nn.Module):
-    def __init__(self, state_size, action_size, hidden_size):
-        super(Critic, self).__init__()
-        self.fc1 = nn.Linear(state_size + action_size, hidden_size)
-        self.fc2 = nn.Linear(hidden_size, hidden_size)
-        self.fc3 = nn.Linear(hidden_size, 1)
-        self.relu = nn.ReLU()
-        
-    def forward(self, state, action):
-        x = torch.cat([state, action], 1)
-        x = self.fc1(x)
-        x = self.relu(x)
-        x = self.fc2(x)
-        x = self.relu(x)
-        x = self.fc3(x)
-        return x
+	def __init__(self, state_size, action_size, hidden_size):
+		super(Critic, self).__init__()
+		self.fc1 = nn.Linear(state_size + action_size, hidden_size)
+		self.fc2 = nn.Linear(hidden_size, hidden_size)
+		self.fc3 = nn.Linear(hidden_size, 1)
+		self.relu = nn.ReLU()
+		
+	def forward(self, state, action):
+		x = torch.cat([state, action], 1)
+		x = self.fc1(x)
+		x = self.relu(x)
+		x = self.fc2(x)
+		x = self.relu(x)
+		x = self.fc3(x)
+		return x
 
 # Replay buffer
 class ReplayBuffer:
-    def __init__(self):
-        self.buffer = []
-        self.max_size = BUFFER_SIZE
-        self.ptr = 0
-        
-    def add(self, state, action, reward, next_state, done):
-        if len(self.buffer) < self.max_size:
-            self.buffer.append(None)
-        self.buffer[self.ptr] = (state, action, reward, next_state, done)
-        self.ptr = (self.ptr + 1) % self.max_size
-        
-    def sample(self, batch_size):
-        batch = random.sample(self.buffer, batch_size)
-        state, action, reward, next_state, done = map(np.stack, zip(*batch))
-        return state, action, reward.reshape(-1, 1), next_state, done.reshape(-1, 1)
+	def __init__(self):
+		self.buffer = []
+		self.max_size = BUFFER_SIZE
+		self.ptr = 0
+		
+	def add(self, state, action, reward, next_state, done):
+		if len(self.buffer) < self.max_size:
+			self.buffer.append(None)
+		self.buffer[self.ptr] = (state, action, reward, next_state, done)
+		self.ptr = (self.ptr + 1) % self.max_size
+		
+	def sample(self, batch_size):
+		batch = random.sample(self.buffer, batch_size)
+		state, action, reward, next_state, done = map(np.stack, zip(*batch))
+		return state, action, reward.reshape(-1, 1), next_state, done.reshape(-1, 1)
 
 # DDPG agent
 class DDPG:
-    def __init__(self, state_size, action_size, hidden_size):
-        self.actor = Actor(state_size, action_size, hidden_size).to(device)
-        self.target_actor = copy.deepcopy(self.actor).to(device)
-        self.critic = Critic(state_size, action_size, hidden_size).to(device)
-        self.target_critic = copy.deepcopy(self.critic).to(device)
-        self.actor_optimizer = optim.Adam(self.actor.parameters(), lr=LR_ACTOR)
-        self.critic_optimizer = optim.Adam(self.critic.parameters(), lr=LR_CRITIC, weight_decay=WEIGHT_DECAY)
-        self.replay_buffer = ReplayBuffer()
-        
+	def __init__(self, state_size, action_size, hidden_size):
+		self.actor = Actor(state_size, action_size, hidden_size).to(device)
+		self.target_actor = copy.deepcopy(self.actor).to(device)
+		self.critic = Critic(state_size, action_size, hidden_size).to(device)
+		self.target_critic = copy.deepcopy(self.critic).to(device)
+		self.actor_optimizer = optim.Adam(self.actor.parameters(), lr=LR_ACTOR)
+		self.critic_optimizer = optim.Adam(self.critic.parameters(), lr=LR_CRITIC, weight_decay=WEIGHT_DECAY)
+		self.replay_buffer = ReplayBuffer()
+		
 
-    def act(self, state, epsilon=0):
-        state = torch.from_numpy(state).float().unsqueeze(0).to(device)
-        with torch.no_grad():
-            
-            action = self.actor(state).cpu().data.numpy()
-        return action
-    
-    def train(self):
-        if len(self.replay_buffer.buffer) < BATCH_SIZE:
-            return
-        
-        state, action, reward, next_state, done = self.replay_buffer.sample(BATCH_SIZE)
-        state = torch.FloatTensor(state).to(device)
-        action = torch.FloatTensor(action).to(device)
-        reward = torch.FloatTensor(reward).to(device)
-        next_state = torch.FloatTensor(next_state).to(device)
-        done = torch.FloatTensor(done).to(device)
-        
-        # Update critic
-        #print(action)
-        Q = self.critic(state, action)
-        next_action = self.target_actor(next_state)
-        next_Q = self.target_critic(next_state, next_action.detach())
-        target_Q = reward + GAMMA * next_Q * (1 - done)
-        critic_loss = nn.MSELoss()(Q, target_Q.detach())
-        self.critic_optimizer.zero_grad()
-        critic_loss.backward()
-        self.critic_optimizer.step()
-        
-        # Update actor
-        actor_loss = -self.critic(state, self.actor(state)).mean()
-        self.actor_optimizer.zero_grad()
-        actor_loss.backward()
-        self.actor_optimizer.step()
-        
-        # Update target networks
-        for target, source in zip(self.target_critic.parameters(), self.critic.parameters()):
-            target.data.copy_(TAU * source.data + (1 - TAU) * target.data)
-        for target, source in zip(self.target_actor.parameters(), self.actor.parameters()):
-            target.data.copy_(TAU * source.data + (1 - TAU) * target.data)
-        
-    def update_replay_buffer(self, state, action, reward, next_state, done):
-        self.replay_buffer.add(state, action, reward, next_state, done)
-        
-    def save(self, filename):
-        torch.save(self.actor.state_dict(), filename + "_actor.pth")
-        torch.save(self.critic.state_dict(), filename + "_critic.pth")
-        
-    def load(self, filename):
-        self.actor.load_state_dict(torch.load(filename + "_actor.pth", map_location=device))
-        self.target_actor = copy.deepcopy(self.actor)
-        self.critic.load_state_dict(torch.load(filename + "_critic.pth", map_location=device))
-        self.target_critic = copy.deepcopy(self.critic)
+	def act(self, state, epsilon=0):
+		state = torch.from_numpy(state).float().unsqueeze(0).to(device)
+		with torch.no_grad():
+			
+			action = self.actor(state).cpu().data.numpy()
+		return action
+	
+	def train(self):
+		if len(self.replay_buffer.buffer) < BATCH_SIZE:
+			return
+		
+		state, action, reward, next_state, done = self.replay_buffer.sample(BATCH_SIZE)
+		state = torch.FloatTensor(state).to(device)
+		action = torch.FloatTensor(action).to(device)
+		reward = torch.FloatTensor(reward).to(device)
+		next_state = torch.FloatTensor(next_state).to(device)
+		done = torch.FloatTensor(done).to(device)
+		
+		# Update critic
+		#print(action)
+		Q = self.critic(state, action)
+		next_action = self.target_actor(next_state)
+		next_Q = self.target_critic(next_state, next_action.detach())
+		target_Q = reward + GAMMA * next_Q * (1 - done)
+		critic_loss = nn.MSELoss()(Q, target_Q.detach())
+		self.critic_optimizer.zero_grad()
+		critic_loss.backward()
+		self.critic_optimizer.step()
+		
+		# Update actor
+		actor_loss = -self.critic(state, self.actor(state)).mean()
+		self.actor_optimizer.zero_grad()
+		actor_loss.backward()
+		self.actor_optimizer.step()
+		
+		# Update target networks
+		for target, source in zip(self.target_critic.parameters(), self.critic.parameters()):
+			target.data.copy_(TAU * source.data + (1 - TAU) * target.data)
+		for target, source in zip(self.target_actor.parameters(), self.actor.parameters()):
+			target.data.copy_(TAU * source.data + (1 - TAU) * target.data)
+		
+	def update_replay_buffer(self, state, action, reward, next_state, done):
+		self.replay_buffer.add(state, action, reward, next_state, done)
+		
+	def save(self, filename):
+		torch.save(self.actor.state_dict(), filename + "_actor.pth")
+		torch.save(self.critic.state_dict(), filename + "_critic.pth")
+		
+	def load(self, filename):
+		self.actor.load_state_dict(torch.load(filename + "_actor.pth", map_location=device))
+		self.target_actor = copy.deepcopy(self.actor)
+		self.critic.load_state_dict(torch.load(filename + "_critic.pth", map_location=device))
+		self.target_critic = copy.deepcopy(self.critic)
 	
 
 #print(data.xpos[8])
@@ -340,7 +325,7 @@ def render_it():
 	mj.mjv_defaultOption(opt)
 	scene = mj.MjvScene(model, maxgeom=10000)
 	context = mj.MjrContext(model, mj.mjtFontScale.mjFONTSCALE_150.value)
-    # Callback functions
+	# Callback functions
 	def keyboard(window, key, scancode, act, mods):
 		if act == glfw.PRESS and key == glfw.KEY_BACKSPACE:
 			mj.mj_resetData(model, data)

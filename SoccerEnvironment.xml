@@ -1,5 +1,4 @@
 <mujoco>
-
 	<asset>
 		<material name="floor" texture="checks1" texrepeat="2 2" texuniform="true"/>
 		<texture name="checks1" builtin="checker" type='2d' width='256' height='256' rgb1="1 1 1" rgb2="0 0 0" />
@@ -102,11 +101,15 @@
 
 		<!-- Team B -->
         <!-- Player 1 -->
-        <body name="B_1" pos="-5 0 0.365" >
+        <body name="B_1" pos="-5 5 0.365" >
             <geom name="b_1" type="sphere" size="0.365"  rgba="1 0 0 1"  mass="1" friction="1" />
             <joint type="free"/>
         </body>
 
+		<body name="B_2" pos="-5 -5 0.365" >
+            <geom name="b_2" type="sphere" size="0.365"  rgba="1 0 0 1"  mass="1" friction="1" />
+            <joint type="free"/>
+        </body>
+
     </worldbody>
-    
 </mujoco>

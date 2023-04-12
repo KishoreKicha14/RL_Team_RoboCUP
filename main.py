@@ -32,16 +32,15 @@ class Soccer(gym.Env):
 
         # Define the observation space
         # The observation space has 10 dimensions:
-        # 1. Ball x-coordinate
-        # 2. Ball y-coordinate
-        # 3. Ball x-velocity
-        # 4. Ball y-velocity
-        # 5. Ball angle with respect to x-axis (-pi to pi)
-        # 6. Agent x-coordinate
-        # 7. Agent y-coordinate
-        # 8. Agent x-velocity
-        # 9. Agent y-velocity
-        # 10. Agent angle with respect to x-axis (-pi to pi)
+        # 1. Agent x-coordinate
+        # 2. Agent y-coordinate
+        # 3. Agent x-velocity
+        # 4. Agent y-velocity
+        # 5. Agent angle with respect to x-axis (-pi to pi)
+        # 6. Ball x-coordinate
+        # 7. Ball y-coordinate
+        # 8. Ball x-velocity
+        # 9. Ball y-velocity
         low = np.array([-45, -30, -10, -10, -np.pi, -45, -30, -10, -10], dtype=np.float32)
         high = np.array([45, 30, 10, 10, np.pi, 45, 30, 10, 10], dtype=np.float32)
         self.observation_space = spaces.Box(low=low, high=high, dtype=np.float32)
@@ -333,7 +332,7 @@ def render_it():
 	glfw.make_context_current(window)
 	glfw.swap_interval(1)
 
-	state=np.array([start_agent_x, start_ball_y, 0, 0, 0, start_ball_x, start_ball_y, 0, 0])
+	state=np.array([start_agent_x, start_agent_y, 0, 0, 0, start_ball_x, start_ball_y, 0, 0])
 
 	# initialize visualization data structures
 	mj.mjv_defaultCamera(cam)

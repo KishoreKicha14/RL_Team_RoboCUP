@@ -153,10 +153,10 @@ epsilon_decay = 0.995
 epsilon_min = 0.01
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-# Actor 1 network
-class Actor1(nn.Module):
+# Actor  network
+class Actor(nn.Module):
     def __init__(self, state_size, action_size, hidden_size):
-        super(Actor1, self).__init__()
+        super(Actor, self).__init__()
         self.fc1 = nn.Linear(state_size, hidden_size)
         self.fc2 = nn.Linear(hidden_size, hidden_size)
         self.fc3 = nn.Linear(hidden_size, action_size)
@@ -172,43 +172,7 @@ class Actor1(nn.Module):
         x = self.tanh(x)
         return x
     
-# Actor 2 network
-class Actor2(nn.Module):
-    def __init__(self, state_size, action_size, hidden_size):
-        super(Actor2, self).__init__()
-        self.fc1 = nn.Linear(state_size, hidden_size)
-        self.fc2 = nn.Linear(hidden_size, hidden_size)
-        self.fc3 = nn.Linear(hidden_size, action_size)
-        self.relu = nn.ReLU()
-        self.tanh = nn.Tanh()
-        
-    def forward(self, state):
-        x = self.fc1(state)
-        x = self.relu(x)
-        x = self.fc2(x)
-        x = self.relu(x)
-        x = self.fc3(x)
-        x = self.tanh(x)
-        return x
 
-# Actor 3 network
-class Actor3(nn.Module):
-    def __init__(self, state_size, action_size, hidden_size):
-        super(Actor3, self).__init__()
-        self.fc1 = nn.Linear(state_size, hidden_size)
-        self.fc2 = nn.Linear(hidden_size, hidden_size)
-        self.fc3 = nn.Linear(hidden_size, action_size)
-        self.relu = nn.ReLU()
-        self.tanh = nn.Tanh()
-        
-    def forward(self, state):
-        x = self.fc1(state)
-        x = self.relu(x)
-        x = self.fc2(x)
-        x = self.relu(x)
-        x = self.fc3(x)
-        x = self.tanh(x)
-        return x
 
 # Critic network
 class Critic(nn.Module):
@@ -249,12 +213,8 @@ class ReplayBuffer:
 # MADDDPG agent
 class MADDDPG:
     def __init__(self, state_size, action_size, hidden_size):
-        self.actor1 = Actor1(state_size, action_size, hidden_size).to(device)
-	    self.actor2 = Actor2(state_size, action_size, hidden_size).to(device)
-	    self.actor3 = Actor3(state_size, action_size, hidden_size).to(device)
-        self.target_actor1 = copy.deepcopy(self.actor1).to(device)
-        self.target_actor2 = copy.deepcopy(self.actor2).to(device)
-        self.target_actor3 = copy.deepcopy(self.actor3).to(device)
+        self.actor = Actor(state_size, action_size, hidden_size).to(device)
+        self.target_actor = copy.deepcopy(self.actor).to(device)
         self.critic = Critic(state_size, action_size, hidden_size).to(device)
         self.target_critic = copy.deepcopy(self.critic).to(device)
         self.actor_optimizer = optim.Adam(self.actor.parameters(), lr=LR_ACTOR)

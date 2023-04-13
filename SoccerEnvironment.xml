@@ -87,27 +87,28 @@
         </body>
 
 		<!-- Team A -->
-        <!-- Player 1 -->
+        <!-- Team A Player 1 -->
         <body name="A_1" pos="5 5 0.365" >
-            <geom name="a_1" type="sphere" size="0.365"  rgba="0 0 1 1"  mass="1" friction="1" />
+            <geom name="A_1" type="sphere" size="0.365"  rgba="0 0 1 1"  mass="1" friction="1" />
             <joint type="free"/>
         </body>
 
-		<!-- Player 2 -->
+		<!-- Team A Player 2 -->
         <body name="A_2" pos="5 -5 0.365" >
-            <geom name="a_2" type="sphere" size="0.365"  rgba="0 0 1 1"  mass="1" friction="1" />
+            <geom name="A_2" type="sphere" size="0.365"  rgba="0 0 1 1"  mass="1" friction="1" />
             <joint type="free"/>
         </body>
 
 		<!-- Team B -->
-        <!-- Player 1 -->
+        <!-- Team B Player 1 -->
         <body name="B_1" pos="-5 5 0.365" >
-            <geom name="b_1" type="sphere" size="0.365"  rgba="1 0 0 1"  mass="1" friction="1" />
+            <geom name="B_1" type="sphere" size="0.365"  rgba="1 0 0 1"  mass="1" friction="1" />
             <joint type="free"/>
         </body>
 
+		<!-- Team B Player 2 -->
 		<body name="B_2" pos="-5 -5 0.365" >
-            <geom name="b_2" type="sphere" size="0.365"  rgba="1 0 0 1"  mass="1" friction="1" />
+            <geom name="B_2" type="sphere" size="0.365"  rgba="1 0 0 1"  mass="1" friction="1" />
             <joint type="free"/>
         </body>
 

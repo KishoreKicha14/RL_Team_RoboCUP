@@ -1,3 +1,7 @@
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
 # Hyperparameters
 BUFFER_SIZE = 100000
 BATCH_SIZE = 64
@@ -12,7 +16,58 @@ epsilon_decay = 0.995
 epsilon_min = 0.01
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-# DDPG agent
+class Actor(nn.Module):
+	def __init__(self, state_size, action_size, hidden_size):
+		super(Actor, self).__init__()
+		self.fc1 = nn.Linear(state_size, hidden_size)
+		self.fc2 = nn.Linear(hidden_size, hidden_size)
+		self.fc3 = nn.Linear(hidden_size, action_size)
+		self.relu = nn.ReLU()
+		self.tanh = nn.Tanh()
+		
+	def forward(self, state):
+		x = self.fc1(state)
+		x = self.relu(x)
+		x = self.fc2(x)
+		x = self.relu(x)
+		x = self.fc3(x)
+		x = self.tanh(x)
+		return x
+
+class Critic(nn.Module):
+    def __init__(self, state_size, action_size, hidden_size):
+        super(Critic, self).__init__()
+        self.fc1 = nn.Linear(state_size + action_size, hidden_size)
+        self.fc2 = nn.Linear(hidden_size, hidden_size)
+        self.fc3 = nn.Linear(hidden_size, 1)
+        self.relu = nn.ReLU()
+        
+    def forward(self, state, action):
+        x = torch.cat([state, action], 1)
+        x = self.fc1(x)
+        x = self.relu(x)
+        x = self.fc2(x)
+        x = self.relu(x)
+        x = self.fc3(x)
+        return x
+
+class ReplayBuffer:
+    def __init__(self, buffer_size):
+        self.buffer = []
+        self.max_size = buffer_size
+        self.ptr = 0
+        
+    def add(self, state, action, reward, next_state, done):
+        if len(self.buffer) < self.max_size:
+            self.buffer.append(None)
+        self.buffer[self.ptr] = (state, action, reward, next_state, done)
+        self.ptr = (self.ptr + 1) % self.max_size
+        
+    def sample(self, batch_size):
+        batch = random.sample(self.buffer, batch_size)
+        state, action, reward, next_state, done = map(np.stack, zip(*batch))
+        return state, action, reward.reshape(-1, 1), next_state, done.reshape(-1, 1)
+
 class DDPG:
 	def __init__(self, state_size, action_size, hidden_size):
 		self.actor = Actor(state_size, action_size, hidden_size).to(device)

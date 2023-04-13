@@ -1,8 +1,9 @@
 from Simulation import Simulation
 
-envFile = 'SoccerEnvironment.xml'
-simTime = 3 # seconds
+env_file = 'SoccerEnvironment.xml'
+sim_time = 3 # seconds
+players_per_team = 2
 
 for i in range(0,2):
-	sim = Simulation(envFile, simTime)
+	sim = Simulation(env_file, sim_time, players_per_team)
 	sim.start()

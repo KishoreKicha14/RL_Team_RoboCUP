@@ -6,5 +6,5 @@ players_per_team = 2
 
 sim = Simulation(env_file, sim_time, players_per_team)
 for i in range(0,3):
-	sim.start(i)
+	sim.start()
 sim.stop()

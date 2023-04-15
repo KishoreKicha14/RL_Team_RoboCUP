@@ -123,11 +123,9 @@ class Simulation:
 		self.players = self.players_Team_A + self.players_Team_B
 
 	def controller(self, model, data):
-		print('hello' + str(self.i))
+		print('hello')
 
-	def start(self, i):
-		self.i = i
-
+	def start(self):
 		mj.mj_resetData(self.model, self.data)
 		mj.mj_forward(self.model, self.data)
 

@@ -21,10 +21,26 @@ class Simulation:
 		self.lasty = 0
 
 		self.model = mj.MjModel.from_xml_path(self.env_path) 
-		self.data = mj.MjData(self.model)      
+		self.data = mj.MjData(self.model)
 		self.cam = mj.MjvCamera()                       
 		self.opt = mj.MjvOption()
 
+		glfw.init()
+		self.window = glfw.create_window(1200, 900, 'Sphero Soccer', None, None)
+		glfw.make_context_current(self.window)
+		glfw.swap_interval(1)
+
+		mj.mjv_defaultCamera(self.cam)
+		mj.mjv_defaultOption(self.opt)
+
+		glfw.set_key_callback(self.window, self.keyboard)
+		glfw.set_cursor_pos_callback(self.window, self.mouse_move)
+		glfw.set_mouse_button_callback(self.window, self.mouse_button)
+		glfw.set_scroll_callback(self.window, self.mouse_scroll)
+
+		self.scene = mj.MjvScene(self.model, maxgeom=10000)
+		self.context = mj.MjrContext(self.model, mj.mjtFontScale.mjFONTSCALE_150.value)      
+		
 		self.environment = SoccerEnvironment(self.players_per_team)
 
 		self.prefix_Team_A = 'A_'
@@ -107,28 +123,16 @@ class Simulation:
 		self.players = self.players_Team_A + self.players_Team_B
 
 	def controller(self, model, data):
-		print('hello')
+		print('hello' + str(self.i))
 
-	def start(self):
+	def start(self, i):
+		self.i = i
+
 		mj.mj_resetData(self.model, self.data)
 		mj.mj_forward(self.model, self.data)
 
-		self.init_controller(self.model, self.data)	
-
-		glfw.init()
-		self.window = glfw.create_window(1200, 900, 'Sphero Soccer', None, None)
-		glfw.make_context_current(self.window)
-		glfw.swap_interval(1)
-
-		mj.mjv_defaultCamera(self.cam)
-		mj.mjv_defaultOption(self.opt)
-		self.scene = mj.MjvScene(self.model, maxgeom=10000)
-		self.context = mj.MjrContext(self.model, mj.mjtFontScale.mjFONTSCALE_150.value)                
-
-		glfw.set_key_callback(self.window, self.keyboard)
-		glfw.set_cursor_pos_callback(self.window, self.mouse_move)
-		glfw.set_mouse_button_callback(self.window, self.mouse_button)
-		glfw.set_scroll_callback(self.window, self.mouse_scroll)
+		self.init_controller(self.model, self.data)
+		mj.set_mjcb_control(self.controller)          
 
 		while not glfw.window_should_close(self.window):
 			time_prev = self.data.time
@@ -148,5 +152,6 @@ class Simulation:
 			glfw.swap_buffers(self.window)
 
 			glfw.poll_events()
-
+	
+	def stop(self):
 		glfw.terminate()

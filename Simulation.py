@@ -5,6 +5,7 @@ import os
 
 from SoccerPlayer import SoccerPlayer
 from SoccerEnvironment import SoccerEnvironment
+from SoccerBall import SoccerBall
 
 class Simulation:
 	def __init__(self, envFile, simTime, players_per_team):
@@ -55,7 +56,9 @@ class Simulation:
 
 		self.players_Team_A = []
 		self.players_Team_B = []
-		self.players = []      		
+		self.players = [] 
+
+		self.ball = None  		
 
 	def set_env_path(self, envFile):
 		dirname = os.path.dirname(__file__)
@@ -122,8 +125,11 @@ class Simulation:
 
 		self.players = self.players_Team_A + self.players_Team_B
 
+		self.ball = SoccerBall(model, data, 'ball')
+
 	def controller(self, model, data):
-		print('hello')
+		self.players[0].set_pose(model, data, None, (1, 0, 2, 3))
+		self.players[0].set_velocity(model, data, (7, 0, 0), None)
 
 	def start(self):
 		mj.mj_resetData(self.model, self.data)

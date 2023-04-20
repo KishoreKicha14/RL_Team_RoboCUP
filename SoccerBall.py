@@ -1,7 +1,7 @@
 import mujoco as mj
 
 class SoccerBall():
-	def __init__(self, data, model, name):
+	def __init__(self, model, data, name):
 		self.name = name
 		self.id = mj.mj_name2id(model, mj.mjtObj.mjOBJ_BODY, name)
 

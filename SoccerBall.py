@@ -92,4 +92,4 @@ class SoccerBall():
 		self.set_position(model, data, (0, 0, 0.365))
 
 	def get_state(self, model, data):
-		return np.concatenate((self.get_position(model, data)[:2], self.get_velocity(model, data)[:2]))
+		return np.concatenate((self.get_position(model, data)[:2], self.get_velocity(model, data)[:2])).tolist()

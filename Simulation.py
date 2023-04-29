@@ -117,11 +117,7 @@ class Simulation:
 
 	def mouse_scroll(self, window, xoffset, yoffset):
 		action = mj.mjtMouse.mjMOUSE_ZOOM
-		mj.mjv_moveCamera(self.model, action, 0.0, -0.05 * yoffset, self.scene, self.cam)
-
-	def construct_state(self):
-		for player in self.players:
-			pass
+		mj.mjv_moveCamera(self.model, action, 0.0, -0.05 * yoffset, self.scene, self.cam)		
 
 	def init_controller(self, model, data):
 		for name in self.player_names_Team_A:
@@ -135,7 +131,14 @@ class Simulation:
 
 	def controller(self, model, data):
 		self.time += 1
-		print(self.ball.get_state(model, data))
+
+		state_space = []
+		for player in self.players:
+			state_space += player.get_state(model, data)
+		state_space += self.ball.get_state(model, data)
+		
+		print(state_space)
+
 
 	def start(self):
 		self.init_controller(self.model, self.data)

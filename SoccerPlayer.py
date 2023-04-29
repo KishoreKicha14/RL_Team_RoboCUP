@@ -46,7 +46,7 @@ class SoccerPlayer():
 		return data.qpos[self.id_joint * 7 + 3: self.id_joint * 7 + 7]
 
 	def get_state(self, model, data):
-		return np.concatenate((self.get_position(model, data)[:2], self.get_velocity(model, data)[:2], [self.forward]))
+		return np.concatenate((self.get_position(model, data)[:2], self.get_velocity(model, data)[:2], [self.forward])).tolist()
 
 	def get_action(self, model, data):
 		pass

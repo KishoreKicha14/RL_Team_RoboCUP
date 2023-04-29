@@ -1,4 +1,5 @@
 import mujoco as mj
+import numpy as np
 
 class SoccerBall():
 	def __init__(self, model, data, name):
@@ -23,6 +24,9 @@ class SoccerBall():
 
 	def set_position(self, model, data, position):
 		data.qpos[self.id_joint * 7: self.id_joint * 7 + 3] = position
+
+	def get_velocity(self, model, data):
+		return data.qvel[self.id_joint * 6: self.id_joint * 6 + 6]
 
 	def is_ball_touched(self, data, model):
 		for c in contacts:
@@ -86,3 +90,6 @@ class SoccerBall():
 		self._dist_between_last_hits = None
 
 		self.set_position(model, data, (0, 0, 0.365))
+
+	def get_state(self, model, data):
+		return np.concatenate((self.get_position(model, data)[:2], self.get_velocity(model, data)[:2]))

@@ -3,7 +3,10 @@ import mujoco as mj
 class SoccerBall():
 	def __init__(self, model, data, name):
 		self.name = name
-		self.id = mj.mj_name2id(model, mj.mjtObj.mjOBJ_BODY, name)
+
+		self.id_body = mj.mj_name2id(model, mj.mjtObj.mjOBJ_BODY, name)
+		self.id_geom = mj.mj_name2id(model, mj.mjtObj.mjOBJ_GEOM, name)
+		self.id_joint = mj.mj_name2id(model, mj.mjtObj.mjOBJ_JOINT, name)
 
 		self._last_hit = None
 		self._hit = False
@@ -15,8 +18,11 @@ class SoccerBall():
 		self._dist_since_last_hit = None
 		self._dist_between_last_hits = None
 
-	def get_position(self, data, model):
-		return model.body_pos[self.id, :]
+	def get_position(self, model, data):
+		return data.qpos[self.id_joint * 7: self.id_joint * 7 + 3]
+
+	def set_position(self, model, data, position):
+		data.qpos[self.id_joint * 7: self.id_joint * 7 + 3] = position
 
 	def is_ball_touched(self, data, model):
 		for c in contacts:
@@ -25,7 +31,6 @@ class SoccerBall():
 				last_touch[player_id] = player_id
 				print(f"Player {player_ids.index(player_id) + 1} touched the ball!")
 
-	
 	def Is_boundaries_touched():
 		boundaries=( "Touch lines1", "Touch lines2", "Touch lines3", "Touch lines4", "Touch lines5", "Touch lines6",)
 		for i in range(len(data.contact.geom1)):
@@ -69,3 +74,19 @@ class SoccerBall():
 		# calculate the distance
 		distance = np.linalg.norm(np.cross(p - a, p - b)) / np.linalg.norm(b - a)
 		return distance
+
+	def reset(self, model, data):
+		self._last_hit = None
+		self._hit = False
+		self._repossessed = False
+		self._intercepted = False
+
+		self._pos_at_last_step = None
+		self._dist_since_last_hit = None
+		self._dist_between_last_hits = None
+
+		self.set_position(model, data, (0, 0, 0.365))
+
+
+
+		

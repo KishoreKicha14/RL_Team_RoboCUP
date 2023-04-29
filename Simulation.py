@@ -2,13 +2,14 @@ import mujoco as mj
 from mujoco.glfw import glfw
 import numpy as np
 import os
+import threading
 
 from SoccerPlayer import SoccerPlayer
 from SoccerEnvironment import SoccerEnvironment
 from SoccerBall import SoccerBall
 
 class Simulation:
-	def __init__(self, envFile, simTime, players_per_team):
+	def __init__(self, envFile, simTime, players_per_team, randomize_player_positions = False):
 		self.env_path = None
 		self.set_env_path(envFile)
 
@@ -42,7 +43,7 @@ class Simulation:
 		self.scene = mj.MjvScene(self.model, maxgeom=10000)
 		self.context = mj.MjrContext(self.model, mj.mjtFontScale.mjFONTSCALE_150.value)      
 		
-		self.environment = SoccerEnvironment(self.players_per_team)
+		self.environment = SoccerEnvironment(self.players_per_team, randomize_player_positions)
 
 		self.prefix_Team_A = 'A_'
 		self.prefix_Team_B = 'B_'
@@ -58,7 +59,9 @@ class Simulation:
 		self.players_Team_B = []
 		self.players = [] 
 
-		self.ball = None  		
+		self.ball = None
+
+		self.time = 0
 
 	def set_env_path(self, envFile):
 		dirname = os.path.dirname(__file__)
@@ -116,27 +119,32 @@ class Simulation:
 		action = mj.mjtMouse.mjMOUSE_ZOOM
 		mj.mjv_moveCamera(self.model, action, 0.0, -0.05 * yoffset, self.scene, self.cam)
 
+	def construct_state(self):
+		for player in self.players:
+			pass
+
 	def init_controller(self, model, data):
 		for name in self.player_names_Team_A:
-			self.players_Team_A.append(SoccerPlayer(model, data, name, self.environment))
+			self.players_Team_A.append(SoccerPlayer(model, data, name, 'A', self.environment))
 
 		for name in self.player_names_Team_B:
-			self.players_Team_B.append(SoccerPlayer(model, data, name, self.environment))
+			self.players_Team_B.append(SoccerPlayer(model, data, name, 'B', self.environment))
 
 		self.players = self.players_Team_A + self.players_Team_B
-
 		self.ball = SoccerBall(model, data, 'ball')
 
 	def controller(self, model, data):
-		self.players[0].set_pose(model, data, None, (1, 0, 2, 3))
-		self.players[0].set_velocity(model, data, (7, 0, 0), None)
+		self.time += 1
+
+		print(self.players[0].get_state(model, data))
+
 
 	def start(self):
-		mj.mj_resetData(self.model, self.data)
-		mj.mj_forward(self.model, self.data)
-
 		self.init_controller(self.model, self.data)
+		self.reset()
 		mj.set_mjcb_control(self.controller)          
+
+		mj.mj_forward(self.model, self.data)
 
 		while not glfw.window_should_close(self.window):
 			time_prev = self.data.time
@@ -156,6 +164,18 @@ class Simulation:
 			glfw.swap_buffers(self.window)
 
 			glfw.poll_events()
+
+	def reset(self):
+		mj.mj_resetData(self.model, self.data)
+		self.time = 0
+
+		for player in self.players:
+			player.reset(self.model, self.data)
+
+		self.ball.reset(self.model, self.data)
+
+		mj.mj_forward(self.model, self.data)
+
 	
 	def stop(self):
 		glfw.terminate()

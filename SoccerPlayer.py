@@ -1,17 +1,22 @@
 import mujoco as mj
+import numpy as np
 from DDPG import Actor
 
 class SoccerPlayer():
-	def __init__(self, model, data, name, env):
+	def __init__(self, model, data, name, team, env):
 		self.name = name
 		self.env = env
 
+		self.team = team
 		self.id_body = mj.mj_name2id(model, mj.mjtObj.mjOBJ_BODY, name)
 		self.id_geom = mj.mj_name2id(model, mj.mjtObj.mjOBJ_GEOM, name)
 		self.id_joint = mj.mj_name2id(model, mj.mjtObj.mjOBJ_JOINT, name)
 		
 		self.size_hidden_layers = 256
 		self.brain = Actor(self.env.observation_space.shape[0], self.env.action_space.shape[0], self.size_hidden_layers)
+
+		# The direction the agent is initially facing
+		self.forward = 0
 
 	def get_pose(self, model, data):
 		return data.qpos[self.id_joint * 7: self.id_joint * 7 + 7]
@@ -34,17 +39,19 @@ class SoccerPlayer():
 	def get_position(self, model, data):
 		return data.qpos[self.id_joint * 7: self.id_joint * 7 + 3]
 
+	def set_position(self, model, data, position):
+		data.qpos[self.id_joint * 7: self.id_joint * 7 + 3] = position
+
 	def get_direction(self, model, data):
 		return data.qpos[self.id_joint * 7 + 3: self.id_joint * 7 + 7]
 
-
-
-	
+	def get_state(self, model, data):
+		return np.concatenate((self.get_position(model, data), self.get_direction(model, data), self.get_velocity(model, data)))
 
 	def get_action(self, model, data):
+		pass
 
-
-	def move_and_rotate(current_coords, angle, forward):
+	def step(current_coords, angle, forward):
 		forward+=angle
 		angle= angle
 		x, y, z = current_coords
@@ -55,3 +62,9 @@ class SoccerPlayer():
 
 	def distance_bw_ball_n_sphero():
 		return np.linalg.norm(data.xpos[8] - data.xpos[9])
+
+	def reset(self, model, data):
+		if self.env.randomize_player_positions:
+			position_x = np.random.uniform(-45, 45)
+			position_y = np.random.uniform(-30, 30)
+			self.set_position(model, data, (position_x, position_y, 0.365))

@@ -135,9 +135,7 @@ class Simulation:
 
 	def controller(self, model, data):
 		self.time += 1
-
 		print(self.players[0].get_state(model, data))
-
 
 	def start(self):
 		self.init_controller(self.model, self.data)

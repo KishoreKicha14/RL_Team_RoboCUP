@@ -86,7 +86,3 @@ class SoccerBall():
 		self._dist_between_last_hits = None
 
 		self.set_position(model, data, (0, 0, 0.365))
-
-
-
-		

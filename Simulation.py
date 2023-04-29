@@ -2,7 +2,7 @@ import mujoco as mj
 from mujoco.glfw import glfw
 import numpy as np
 import os
-import threading
+import torch
 
 from SoccerPlayer import SoccerPlayer
 from SoccerEnvironment import SoccerEnvironment
@@ -60,8 +60,9 @@ class Simulation:
 		self.players = [] 
 
 		self.ball = None
-
 		self.time = 0
+
+		
 
 	def set_env_path(self, envFile):
 		dirname = os.path.dirname(__file__)
@@ -131,15 +132,22 @@ class Simulation:
 
 	def controller(self, model, data):
 		self.time += 1
-
-		state_space = []
-		for player in self.players:
-			state_space += player.get_state(model, data)
-		state_space += self.ball.get_state(model, data)
+		state_space = self.environment.generate_state_space(model, data, self.players, self.ball)
 		
-		print(state_space)
+		
+		for player in self.players:
+			with torch.no_grad():
+				action = player.brain(state_space)[0]
+			angle, speed = action
 
+			new_direction = player.rotate(model, data, angle)
+			new_direction = np.array(new_direction)
+			new_direction /= np.linalg.norm(new_direction)
 
+			velocity = speed * new_direction
+			player.set_velocity(model, data, velocity)
+			
+		
 	def start(self):
 		self.init_controller(self.model, self.data)
 		self.reset()

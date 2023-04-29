@@ -1,6 +1,7 @@
 import mujoco as mj
 import numpy as np
 from DDPG import Actor
+import math
 
 class SoccerPlayer():
 	def __init__(self, model, data, name, team, env):
@@ -48,17 +49,13 @@ class SoccerPlayer():
 	def get_state(self, model, data):
 		return np.concatenate((self.get_position(model, data)[:2], self.get_velocity(model, data)[:2], [self.forward])).tolist()
 
-	def get_action(self, model, data):
-		pass
-
-	def step(current_coords, angle, forward):
-		forward+=angle
-		angle= angle
-		x, y, z = current_coords
+	def rotate(self, model, data, angle):
+		self.forward += angle
 		x_prime = math.cos(angle)
 		y_prime = math.sin(angle)
 		z_prime = 0
-		return  forward, [x_prime, y_prime, z_prime]
+		
+		return [x_prime, y_prime, z_prime]
 
 	def distance_bw_ball_n_sphero():
 		return np.linalg.norm(data.xpos[8] - data.xpos[9])

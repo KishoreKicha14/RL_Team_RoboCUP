@@ -133,21 +133,9 @@ class Simulation:
 	def controller(self, model, data):
 		self.time += 1
 		state_space = self.environment.generate_state_space(model, data, self.players, self.ball)
-		
-		
-		for player in self.players:
-			with torch.no_grad():
-				action = player.brain(state_space)[0]
-			angle, speed = action
-
-			new_direction = player.rotate(model, data, angle)
-			new_direction = np.array(new_direction)
-			new_direction /= np.linalg.norm(new_direction)
-
-			velocity = speed * new_direction
-			player.set_velocity(model, data, velocity)
+		actions = self.environment.generate_actions(model, data, self.players, state_space)
+		self.environment.step(model, data, self.players, actions)
 			
-		
 	def start(self):
 		self.init_controller(self.model, self.data)
 		self.reset()
@@ -177,14 +165,10 @@ class Simulation:
 	def reset(self):
 		mj.mj_resetData(self.model, self.data)
 		self.time = 0
-
 		for player in self.players:
 			player.reset(self.model, self.data)
-
 		self.ball.reset(self.model, self.data)
-
 		mj.mj_forward(self.model, self.data)
-
 	
 	def stop(self):
 		glfw.terminate()

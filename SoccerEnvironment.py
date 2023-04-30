@@ -41,3 +41,25 @@ class SoccerEnvironment(gym.Env):
 		state_space += ball.get_state(model, data)
 		state_space = torch.from_numpy(np.array(state_space)).float().unsqueeze(0).to(self.device)
 		return state_space
+
+	def generate_actions(self, model, data, players, state_space):
+		actions = []
+		for player in players:
+			with torch.no_grad():
+				action = player.brain(state_space)[0]
+				actions.append(action)
+		return actions
+
+	def perform_action(self, model, data, player, action):
+		angle, speed = action
+
+		new_direction = player.rotate(model, data, angle)
+		new_direction = np.array(new_direction)
+		new_direction /= np.linalg.norm(new_direction)
+
+		velocity = speed * new_direction
+		player.set_velocity(model, data, velocity)
+
+	def step(self, model, data, players, actions):
+		for player, action in zip(players, actions):
+			self.perform_action(model, data, player, action)

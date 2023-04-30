@@ -19,6 +19,12 @@ class SoccerPlayer():
 		# The direction the agent is initially facing
 		self.forward = 0
 
+	def reset(self, model, data):
+		if self.env.randomize_player_positions:
+			position_x = np.random.uniform(-45, 45)
+			position_y = np.random.uniform(-30, 30)
+			self.set_position(model, data, (position_x, position_y, 0.365))
+
 	def get_pose(self, model, data):
 		return data.qpos[self.id_joint * 7: self.id_joint * 7 + 7]
 
@@ -57,11 +63,10 @@ class SoccerPlayer():
 		
 		return [x_prime, y_prime, z_prime]
 
-	def distance_bw_ball_n_sphero():
-		return np.linalg.norm(data.xpos[8] - data.xpos[9])
+	def compute_reward(self, model, data):
+		# Detect collisions
+		
+		# Compute the distance to the ball
+		# Compute the time penalty
+		time_penalty = -0.0001
 
-	def reset(self, model, data):
-		if self.env.randomize_player_positions:
-			position_x = np.random.uniform(-45, 45)
-			position_y = np.random.uniform(-30, 30)
-			self.set_position(model, data, (position_x, position_y, 0.365))

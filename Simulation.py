@@ -43,26 +43,9 @@ class Simulation:
 		self.scene = mj.MjvScene(self.model, maxgeom=10000)
 		self.context = mj.MjrContext(self.model, mj.mjtFontScale.mjFONTSCALE_150.value)      
 		
-		self.environment = SoccerEnvironment(self.players_per_team, randomize_player_positions)
+		self.environment = SoccerEnvironment(self.model, self.players_per_team, randomize_player_positions)
 
-		self.prefix_Team_A = 'A_'
-		self.prefix_Team_B = 'B_'
-		
-		self.player_names_Team_A = []
-		self.player_names_Team_B = []
-
-		for i in range(1, 1 + self.players_per_team):
-			self.player_names_Team_A.append(self.prefix_Team_A + str(i))
-			self.player_names_Team_B.append(self.prefix_Team_B + str(i))
-
-		self.players_Team_A = []
-		self.players_Team_B = []
-		self.players = [] 
-
-		self.ball = None
 		self.time = 0
-
-		
 
 	def set_env_path(self, envFile):
 		dirname = os.path.dirname(__file__)
@@ -121,20 +104,13 @@ class Simulation:
 		mj.mjv_moveCamera(self.model, action, 0.0, -0.05 * yoffset, self.scene, self.cam)		
 
 	def init_controller(self, model, data):
-		for name in self.player_names_Team_A:
-			self.players_Team_A.append(SoccerPlayer(model, data, name, 'A', self.environment))
-
-		for name in self.player_names_Team_B:
-			self.players_Team_B.append(SoccerPlayer(model, data, name, 'B', self.environment))
-
-		self.players = self.players_Team_A + self.players_Team_B
-		self.ball = SoccerBall(model, data, 'ball')
+		self.environment.initialize_players_and_ball(model, data)
 
 	def controller(self, model, data):
 		self.time += 1
-		state_space = self.environment.generate_state_space(model, data, self.players, self.ball)
-		actions = self.environment.generate_actions(model, data, self.players, state_space)
-		self.environment.step(model, data, self.players, actions)
+		state_space = self.environment.generate_state_space(model, data)
+		actions = self.environment.generate_actions(model, data, state_space)
+		obs, reward, done, info = self.environment.step(model, data, actions)
 			
 	def start(self):
 		self.init_controller(self.model, self.data)
@@ -164,10 +140,7 @@ class Simulation:
 
 	def reset(self):
 		mj.mj_resetData(self.model, self.data)
-		self.time = 0
-		for player in self.players:
-			player.reset(self.model, self.data)
-		self.ball.reset(self.model, self.data)
+		self.environment.reset(self.model, self.data)
 		mj.mj_forward(self.model, self.data)
 	
 	def stop(self):

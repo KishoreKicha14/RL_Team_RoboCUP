@@ -12,7 +12,7 @@ class SoccerEnvironment(gym.Env):
 		self.players_per_team = players_per_team
 		self.randomize_player_positions = randomize_player_positions
 
-		# Angle of rotation, Direction of movement
+		# Angle of rotation, Direction of movement   
 		self.action_space = spaces.Box(
 			low=np.array([-np.pi, 0], dtype=np.float32),
 			high=np.array([np.pi, 1], dtype=np.float32),
@@ -33,6 +33,14 @@ class SoccerEnvironment(gym.Env):
 		high = np.concatenate((np.tile(information_high_agent, number_of_agents), information_high_ball))
 
 		self.observation_space = spaces.Box(low=low, high=high, dtype=np.float32)
+
+		self.state_size = self.observation_space.shape[0]
+		self.action_size = self.action_space.shape[0]
+		self.hidden_layers = 256
+
+		self.state_space = None
+		self.next_state_space = None
+
 		self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 		self.lines_touch = ["touch_line_outside_1", "touch_line_outside_2", "touch_line_goal_A_right", "touch_line_goal_A_left", "touch_line_goal_B_right", "touch_line_goal_B_left"]
@@ -40,10 +48,19 @@ class SoccerEnvironment(gym.Env):
 		for line_touch in self.lines_touch:
 			self.geom_id_lines_touch[line_touch] = mj.mj_name2id(model, mj.mjtObj.mjOBJ_GEOM, line_touch)
 
+		self.goal_A_point_a = np.array([-45, 5, 0])
+		self.goal_A_point_b = np.array([-45, -5, 0])
+		self.goal_B_point_a = np.array([45, 5, 0])
+		self.goal_B_point_b = np.array([45, -5, 0])
 		self.lines_goal = ["touch_line_goal_A", "touch_line_goal_B"]
 		self.geom_id_lines_goal = {}
 		for line_goal in self.lines_goal:
 			self.geom_id_lines_goal[line_goal] = mj.mj_name2id(model, mj.mjtObj.mjOBJ_GEOM, line_goal)
+
+		self.boundaries = ['boundary_1', 'boundary_2', 'boundary_3', 'boundary_4']
+		self.geom_id_boundaries = {}
+		for boundary in self.boundaries:
+			self.geom_id_boundaries[boundary] = mj.mj_name2id(model, mj.mjtObj.mjOBJ_GEOM, boundary)
 
 		self.prefix_Team_A = 'A_'
 		self.prefix_Team_B = 'B_'
@@ -56,16 +73,16 @@ class SoccerEnvironment(gym.Env):
 			self.player_names_Team_B.append(self.prefix_Team_B + str(i))
 
 		self.players_Team_A = []
+		self.players_Team_A_geom_ids = []
 		self.players_Team_B = []
+		self.players_Team_B_geom_ids = []
 		self.players = [] 
 		
 		self.ball = None
 
-		self.time = 0
 		self.players_geom_ids = []
 
 	def reset(self, model, data):
-		self.time = 0
 		for player in self.players:
 			player.reset(model, data)
 		self.ball.reset(model, data)
@@ -76,9 +93,11 @@ class SoccerEnvironment(gym.Env):
 	def initialize_players_and_ball(self, model, data):
 		for name in self.player_names_Team_A:
 			self.players_Team_A.append(SoccerPlayer(model, data, name, 'A', self))
+			self.players_Team_A_geom_ids.append(self.players_Team_A[-1].id_geom)
 
 		for name in self.player_names_Team_B:
 			self.players_Team_B.append(SoccerPlayer(model, data, name, 'B', self))
+			self.players_Team_B_geom_ids.append(self.players_Team_B[-1].id_geom)
 
 		self.players = self.players_Team_A + self.players_Team_B
 		self.ball = SoccerBall(model, data, 'ball')
@@ -105,6 +124,13 @@ class SoccerEnvironment(gym.Env):
 
 	def generate_rewards(self, model, data):
 		self.ball.update_state(model, data, self)
+
+		rewards = []
+		for player in self.players:
+			player.compute_reward(model, data, self)
+			rewards.append(player.reward)
+
+		return rewards
 		
 	def perform_action(self, model, data, player, action):
 		angle, speed = action
@@ -113,7 +139,7 @@ class SoccerEnvironment(gym.Env):
 		new_direction = np.array(new_direction)
 		new_direction /= np.linalg.norm(new_direction)
 
-		velocity = speed * new_direction
+		velocity = speed * new_direction * 3
 		player.set_velocity(model, data, velocity)
 
 	def step(self, model, data, actions):
@@ -122,7 +148,7 @@ class SoccerEnvironment(gym.Env):
 
 		obs = self.generate_state_space(model, data)
 		rewards = self.generate_rewards(model, data)
-		done = False
+		done = self.ball._goal
 		info = {}
 
 		return obs, rewards, done, info

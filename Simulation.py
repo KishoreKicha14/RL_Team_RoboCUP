@@ -3,10 +3,9 @@ from mujoco.glfw import glfw
 import numpy as np
 import os
 import torch
+from DDPG import DDPG
 
-from SoccerPlayer import SoccerPlayer
 from SoccerEnvironment import SoccerEnvironment
-from SoccerBall import SoccerBall
 
 class Simulation:
 	def __init__(self, envFile, simTime, players_per_team, randomize_player_positions = False):
@@ -44,6 +43,8 @@ class Simulation:
 		self.context = mj.MjrContext(self.model, mj.mjtFontScale.mjFONTSCALE_150.value)      
 		
 		self.environment = SoccerEnvironment(self.model, self.players_per_team, randomize_player_positions)
+
+		self.agent = DDPG(self.environment.state_size, self.environment.action_size, self.environment.hidden_layers)
 
 		self.time = 0
 
@@ -105,13 +106,14 @@ class Simulation:
 
 	def init_controller(self, model, data):
 		self.environment.initialize_players_and_ball(model, data)
+		self.environment.state_space = self.environment.generate_state_space(model, data)
 
 	def controller(self, model, data):
 		self.time += 1
-		state_space = self.environment.generate_state_space(model, data)
+		state_space = self.environment.state_space
 		actions = self.environment.generate_actions(model, data, state_space)
-		obs, reward, done, info = self.environment.step(model, data, actions)
-			
+		obs, rewards, done, info = self.environment.step(model, data, actions)
+
 	def start(self):
 		self.init_controller(self.model, self.data)
 		self.reset()
@@ -139,6 +141,7 @@ class Simulation:
 			glfw.poll_events()
 
 	def reset(self):
+		self.time = 0
 		mj.mj_resetData(self.model, self.data)
 		self.environment.reset(self.model, self.data)
 		mj.mj_forward(self.model, self.data)

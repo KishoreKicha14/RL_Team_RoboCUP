@@ -13,11 +13,14 @@ class SoccerPlayer():
 		self.id_geom = mj.mj_name2id(model, mj.mjtObj.mjOBJ_GEOM, name)
 		self.id_joint = mj.mj_name2id(model, mj.mjtObj.mjOBJ_JOINT, name)
 		
-		self.size_hidden_layers = 256
-		self.brain = Actor(self.env.observation_space.shape[0], self.env.action_space.shape[0], self.size_hidden_layers)
+		self.brain = Actor(self.env.state_size, self.env.action_size, self.env.hidden_layers)
 
 		# The direction the agent is initially facing
 		self.forward = 0
+		self._last_distance_to_ball = 0
+		self._last_distance_to_goal = 0
+
+		self.reward = 0
 
 	def reset(self, model, data):
 		if self.env.randomize_player_positions:
@@ -63,10 +66,50 @@ class SoccerPlayer():
 		
 		return [x_prime, y_prime, z_prime]
 
-	def compute_reward(self, model, data):
-		# Detect collisions
-		
-		# Compute the distance to the ball
-		# Compute the time penalty
-		time_penalty = -0.0001
+	def compute_reward(self, model, data, env):
+		contacts = data.contact
+		for c in contacts:
+			if c.geom1 == self.id_geom and c.geom2 in env.geom_id_boundaries.values():
+				self.reward = -1000000
+				return self.reward
+
+		pos_sphero = self.get_position(model, data)
+		pos_ball = self.env.ball.get_position(model, data)
+		distance_to_ball = np.linalg.norm(pos_ball - pos_sphero)
+		reward_distance_of_player_to_ball = -0.01 * distance_to_ball
+		self._last_distance_to_ball = distance_to_ball
+
+		distance_to_goal = 0
+		if self.team == 'A':
+			distance_to_goal = env.ball.get_distance_from_goal_A(model, data, env)
+		elif self.team == 'B':
+			distance_to_goal = env.ball.get_distance_from_goal_B(model, data, env)
+		reward_distance_of_ball_to_goal = -0.01 * distance_to_goal
+		self._last_distance_to_goal = distance_to_goal
+
+		player_kicked_ball = env.ball.is_kicked_by_player(self.id_geom)
+		reward_player_kicked_ball = 0
+		if player_kicked_ball:
+			reward_player_kicked_ball = 100
+
+		reward_player_kicked_ball_out_of_bounds = 0
+		reward_team_kicked_ball_out_of_bounds = 0
+		is_ball_out_of_bounds = env.ball.is_boundary_line_touched()
+		if is_ball_out_of_bounds:
+			if env.ball._last_hit == self.id_geom:
+				reward_player_kicked_ball_out_of_bounds = -1000
+			elif env.ball._possession == self.team:
+				reward_team_kicked_ball_out_of_bounds = -1000
+
+		reward_goal_scored_by_player_team = 0
+		reward_goal_scored_by_opponent = 0
+		if env.ball._goal:
+			if env.ball._possession == self.team:
+				reward_goal_scored_by_player_team = 1000
+			else:
+				reward_goal_scored_by_opponent = -10000
+
+		self.reward = reward_distance_of_player_to_ball + reward_distance_of_ball_to_goal + reward_player_kicked_ball + reward_player_kicked_ball_out_of_bounds + reward_team_kicked_ball_out_of_bounds + reward_goal_scored_by_player_team + reward_goal_scored_by_opponent
+			
+		return self.reward
 
